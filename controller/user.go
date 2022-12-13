@@ -15,7 +15,7 @@ func valid(email string) bool {
 
 func PostRegisterController(ctx echo.Context) error {
 	bodyPayload := new(models.User)
-	
+
 	if err := ctx.Bind(bodyPayload); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "missing data"})
 	}
@@ -37,36 +37,36 @@ func PostRegisterController(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// func PostLoginController(ctx echo.Context) error {
-// 	bodyPayload := new(models.User)
+func PostLoginController(ctx echo.Context) error {
+	bodyPayload := new(models.UserLogin)
 
-// 	if err := ctx.Bind(bodyPayload); err != nil {
-// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "missing data"})
-// 	}
+	if err := ctx.Bind(bodyPayload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "missing data"})
+	}
 
-// 	if err := ctx.Validate(bodyPayload); err != nil {
-// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "invalid data"})
-// 	}
+	if err := ctx.Validate(bodyPayload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "invalid data"})
+	}
 
-// 	if bodyPayload.Email != "" && valid(bodyPayload.Email) {
-// 		response, err := models.LoginEmail(bodyPayload)
+	if bodyPayload.Email != "" && valid(bodyPayload.Email) {
+		response, err := models.PostLogin(bodyPayload, "email")
 
-// 		if err != nil {
-// 			return ctx.JSON(http.StatusBadRequest, err.Error())
-// 		}
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, err.Error())
+		}
 
-// 		return ctx.JSON(http.StatusOK, response)
-// 	}
+		return ctx.JSON(http.StatusOK, response)
+	}
 
-// 	response, err := models.LoginUsername(bodyPayload)
+	response, err := models.PostLogin(bodyPayload, "password")
 
-// 	if err != nil {
-// 		return ctx.JSON(http.StatusBadRequest, err.Error())
-// 	}
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
 
-// 	return ctx.JSON(http.StatusOK, response)
+	return ctx.JSON(http.StatusOK, response)
 
-// }
+}
 
 // func PutDetailUserController(ctx echo.Context) error {
 // 	bodyPayload := new(models.DetailUser)

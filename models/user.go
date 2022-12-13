@@ -2,6 +2,7 @@ package models
 
 import (
 	"thor/api/e-commerce/database"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/google/uuid"
@@ -11,6 +12,12 @@ type User struct {
 	Id       string `json:"id"`
 	Username string `json:"username"  validate:"required"`
 	Email    string `json:"email"  validate:"required,email"`
+	Password string `json:"password"  validate:"required"`
+}
+
+type UserLogin struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"  validate:"required"`
 }
 
@@ -28,6 +35,41 @@ func (User) TableName() string {
 
 func (DetailUser) TableName() string {
 	return "detail_user"
+}
+
+func CheckExistingUsernameAndEmail(user User) (map[string]interface{}, bool) {
+	var dbConn database.Connection
+	existingUser := []User{}
+	conn, err := dbConn.OpenConn()
+
+	if err != nil {
+		return nil, false
+	}
+
+	conn.Select("user.*").
+		Where("username", user.Username).
+		Find(&existingUser)
+
+	if len(existingUser) > 0 {
+		response := map[string]interface{}{
+			"message": "username already taken",
+			"status":  0,
+		}
+		return response, false
+	}
+
+	conn.Select("user.*").
+		Where("email", user.Email).
+		Find(&existingUser)
+
+	if len(existingUser) > 0 {
+		response := map[string]interface{}{
+			"message": "email already taken",
+			"status":  0,
+		}
+		return response, false
+	}
+	return nil, true
 }
 
 func PostRegister(user *User) (map[string]interface{}, error) {
@@ -49,6 +91,12 @@ func PostRegister(user *User) (map[string]interface{}, error) {
 		"password": hashedPassword,
 	}
 
+	response, isDuplicate := CheckExistingUsernameAndEmail(*user)
+
+	if !isDuplicate {
+		return response, nil
+	}
+
 	result := conn.Model(User{}).Create(dataUser)
 
 	if result.RowsAffected > 0 {
@@ -64,7 +112,7 @@ func PostRegister(user *User) (map[string]interface{}, error) {
 		if result.RowsAffected > 0 {
 			response = map[string]interface{}{
 				"message": "user created successfully",
-				"status": 1,
+				"status":  1,
 			}
 			return response, nil
 		}
@@ -73,13 +121,54 @@ func PostRegister(user *User) (map[string]interface{}, error) {
 	return response, nil
 }
 
-// func LoginEmail(user *User) (map[string]interface{}, error) {
+func PostLogin(user *UserLogin, method string) (map[string]interface{}, error) {
+	var dbConn database.Connection
+	var response map[string]interface{}
+	existingUser := User{}
 
-// }
+	conn, err := dbConn.OpenConn()
 
-// func LoginUsername(user *User) (map[string]interface{}, error) {
+	if err != nil {
+		return response, err
+	}
+	if method == "email"{
+		conn.Select("user.*").
+			Where("email", user.Email).
+			Find(&existingUser)
+	}else{
+		conn.Select("user.*").
+			Where("username", user.Username).
+			Find(&existingUser)
+	}
+	
 
-// }
+	if existingUser.Password != "" {
+		if CheckPasswordHash(user.Password, existingUser.Password) {
+			response = map[string]interface{}{
+				"message": "login successfully",
+				"status":  1,
+			}
+			return response, nil
+		} else {
+			response = map[string]interface{}{
+				"message": "password incorrect",
+				"status":  0,
+			}
+			return response, nil
+		}
+	}
+
+	response = map[string]interface{}{
+		"message": "email or username incorrect",
+		"status":  0,
+	}
+	return response, nil
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
 
 // func UpdateDetailUser(detailUser *DetailUser) (map[string]interface{}, error) {
 

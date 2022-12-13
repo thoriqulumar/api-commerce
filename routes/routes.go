@@ -12,7 +12,9 @@ import (
 func Routers(){
 	e := echo.New()
 	e.Validator = &helper.CustomValidator{Validator: validator.New()}
+
 	e.POST("/user/register", controller.PostRegisterController)
+	e.POST("/user/login", controller.PostLoginController)
 
 	e.Logger.Fatal(e.Start(":" + config.ServerPort()))
 

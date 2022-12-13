@@ -1,3 +1,4 @@
+
 package database
 
 import (
@@ -16,9 +17,9 @@ func (conn *Connection) OpenConn() (*gorm.DB, error){
 	dbPass := config.DatabasePass()
 	dbHost := config.DatabaseHost()
 	dbPort := config.DatabasePort()
-
+	dbName := config.DatabaseName()
 	var err error
-	dsn := dbUser + ":" + dbPass + "@tcp(" + dbHost + ":" + dbPort + ")/?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := dbUser + ":" + dbPass + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	conn.GormDB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {

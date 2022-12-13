@@ -1,7 +1,7 @@
 {
     "appName": "e-commerce",
     "server":{
-        "port": 2022
+        "port": 8088
     },
     "e-commerce":{
         "host": "127.0.0.1",

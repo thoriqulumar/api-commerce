@@ -2,16 +2,16 @@ package models
 
 import (
 	"thor/api/e-commerce/database"
-	"thor/api/e-commerce/vendor/golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/google/uuid"
 )
 
 type User struct {
 	Id       string `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username string `json:"username"  validate:"required"`
+	Email    string `json:"email"  validate:"required,email"`
+	Password string `json:"password"  validate:"required"`
 }
 
 type DetailUser struct {
@@ -22,37 +22,65 @@ type DetailUser struct {
 	Address  string `json:"address"`
 }
 
-func (User) TableName() string{
+func (User) TableName() string {
 	return "user"
+}
+
+func (DetailUser) TableName() string {
+	return "detail_user"
 }
 
 func PostRegister(user *User) (map[string]interface{}, error) {
 	var dbConn database.Connection
-	conn, err := dbConn.OpenConn()
 	var response map[string]interface{}
+
+	conn, err := dbConn.OpenConn()
 
 	if err != nil {
 		return response, err
 	}
-	out := uuid.Must(uuid.NewRandom()).String()
+	generateID := uuid.Must(uuid.NewRandom()).String()
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 
 	dataUser := map[string]interface{}{
-		"id": "usr~"+out,
+		"id":       "usr~" + generateID,
 		"username": user.Username,
 		"email":    user.Email,
 		"password": hashedPassword,
 	}
+
+	result := conn.Model(User{}).Create(dataUser)
+
+	if result.RowsAffected > 0 {
+		generateDetailID := uuid.Must(uuid.NewRandom()).String()
+		dataDetail := map[string]interface{}{
+			"id":       "detUsr~" + generateDetailID,
+			"user_id":  "usr~" + generateID,
+			"username": user.Username,
+			"email":    user.Email,
+		}
+
+		result := conn.Model(DetailUser{}).Create(dataDetail)
+		if result.RowsAffected > 0 {
+			response = map[string]interface{}{
+				"message": "user created successfully",
+				"status": 1,
+			}
+			return response, nil
+		}
+	}
+
+	return response, nil
 }
 
-func LoginEmail(user *User) (map[string]interface{}, error) {
+// func LoginEmail(user *User) (map[string]interface{}, error) {
 
-}
+// }
 
-func LoginUsername(user *User) (map[string]interface{}, error) {
+// func LoginUsername(user *User) (map[string]interface{}, error) {
 
-}
+// }
 
-func UpdateDetailUser(detailUser *DetailUser) (map[string]interface{}, error) {
+// func UpdateDetailUser(detailUser *DetailUser) (map[string]interface{}, error) {
 
-}
+// }

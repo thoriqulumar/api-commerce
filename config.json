@@ -1,0 +1,13 @@
+{
+    "appName": "e-commerce",
+    "server":{
+        "port": 2022
+    },
+    "e-commerce":{
+        "host": "127.0.0.1",
+        "name": "e-commerce",
+        "user": "root",
+        "pass": "root",
+        "port": "3306"
+    }
+}

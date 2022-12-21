@@ -22,6 +22,7 @@ type UserLogin struct {
 }
 
 type DetailUser struct {
+	IdUser   string `json:"user_id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	FullName string `json:"fullName"`
@@ -103,7 +104,7 @@ func PostRegister(user *User) (map[string]interface{}, error) {
 		generateDetailID := uuid.Must(uuid.NewRandom()).String()
 		dataDetail := map[string]interface{}{
 			"id":       "detUsr~" + generateDetailID,
-			"user_id":  "usr~" + generateID,
+			"user_id":  dataUser["id"],
 			"username": user.Username,
 			"email":    user.Email,
 		}
@@ -112,6 +113,7 @@ func PostRegister(user *User) (map[string]interface{}, error) {
 		if result.RowsAffected > 0 {
 			response = map[string]interface{}{
 				"message": "user created successfully",
+				"id":      dataUser["id"],
 				"status":  1,
 			}
 			return response, nil
@@ -131,21 +133,21 @@ func PostLogin(user *UserLogin, method string) (map[string]interface{}, error) {
 	if err != nil {
 		return response, err
 	}
-	if method == "email"{
+	if method == "email" {
 		conn.Select("user.*").
 			Where("email", user.Email).
 			Find(&existingUser)
-	}else{
+	} else {
 		conn.Select("user.*").
 			Where("username", user.Username).
 			Find(&existingUser)
 	}
-	
 
 	if existingUser.Password != "" {
 		if CheckPasswordHash(user.Password, existingUser.Password) {
 			response = map[string]interface{}{
 				"message": "login successfully",
+				"id":      existingUser.Id,
 				"status":  1,
 			}
 			return response, nil
@@ -170,6 +172,77 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-// func UpdateDetailUser(detailUser *DetailUser) (map[string]interface{}, error) {
+func UpdateDetailUser(detailUser *DetailUser) (map[string]interface{}, error) {
+	var dbConn database.Connection
+	var response map[string]interface{}
 
-// }
+	conn, err := dbConn.OpenConn()
+
+	if err != nil {
+		return response, err
+	}
+
+	data := map[string]interface{}{
+		"username":  detailUser.Username,
+		"email":     detailUser.Email,
+		"full_name": detailUser.FullName,
+		"phone":     detailUser.Phone,
+		"address":   detailUser.Address,
+	}
+
+	result := conn.Model(&detailUser).
+		Select("detail_user").
+		Where("user_id", detailUser.IdUser).
+		Updates(data)
+
+	if result.RowsAffected > 0 {
+		response = map[string]interface{}{
+			"message": "user info updated",
+			"status":  1,
+		}
+
+		return response, nil
+	}
+
+	response = map[string]interface{}{
+		"message": "user info failed to update",
+		"status":  0,
+	}
+
+	return response, nil
+}
+
+
+func GetDetailUser(detailUser *DetailUser) (map[string]interface{}, error) {
+	var dbConn database.Connection
+	var response map[string]interface{}
+	var user DetailUser
+	
+	conn, err := dbConn.OpenConn()
+
+	if err != nil {
+		return response, err
+	}
+
+
+	result := conn.Model(&detailUser).
+		Select("detail_user.*").
+		Where("user_id", detailUser.IdUser).
+		Find(&user)
+
+	if result.RowsAffected > 0 {
+		response = map[string]interface{}{
+			"user": user,
+			"status":  1,
+		}
+
+		return response, nil
+	}
+
+	response = map[string]interface{}{
+		"message": "user info not found",
+		"status":  0,
+	}
+
+	return response, nil
+}

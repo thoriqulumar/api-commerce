@@ -68,23 +68,43 @@ func PostLoginController(ctx echo.Context) error {
 
 }
 
-// func PutDetailUserController(ctx echo.Context) error {
-// 	bodyPayload := new(models.DetailUser)
+func GetDetailUserController(ctx echo.Context) error {
+	bodyPayload := new(models.DetailUser)
 
-// 	if err := ctx.Bind(bodyPayload); err != nil {
-// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "missing data"})
-// 	}
+	if err := ctx.Bind(bodyPayload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "missing data"})
+	}
 
-// 	if err := ctx.Validate(bodyPayload); err != nil {
-// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "invalid data"})
-// 	}
+	if err := ctx.Validate(bodyPayload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "invalid data"})
+	}
 
-// 	response, err := models.UpdateDetailUser(bodyPayload)
+	response, err := models.GetDetailUser(bodyPayload)
 
-// 	if err != nil {
-// 		return ctx.JSON(http.StatusBadRequest, err.Error())
-// 	}
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
 
-// 	return ctx.JSON(http.StatusOK, response)
+	return ctx.JSON(http.StatusOK, response)
+}
 
-// }
+func PutDetailUserController(ctx echo.Context) error {
+	bodyPayload := new(models.DetailUser)
+
+	if err := ctx.Bind(bodyPayload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "missing data"})
+	}
+
+	if err := ctx.Validate(bodyPayload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "invalid data"})
+	}
+
+	response, err := models.UpdateDetailUser(bodyPayload)
+
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, response)
+
+}
